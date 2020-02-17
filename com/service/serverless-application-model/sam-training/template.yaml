@@ -22,6 +22,14 @@ Resources:
           Properties:
             Path: /s3file
             Method: get
+            get:
+            # ** Missing param start **
+             parameters:
+               - name: "path"
+                 in: "query"
+                 required: "false"
+                 type: "string"
+            # ** Missing param end **
 
 
   CreateS3Bucket:

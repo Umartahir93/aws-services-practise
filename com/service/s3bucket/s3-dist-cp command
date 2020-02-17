@@ -1,0 +1,17 @@
+# This command can be used to copy data between hadoop and hdfs
+
+s3-dist-cp --src= s3/path/from/which/you/can/copy
+           --dest= hdfs/path/to/copy/files
+
+
+
+s3-dist-cp --src= hdfs/path/from/copy/files
+           --dest= s3/path/to/which/you/can/copy
+
+
+To run this command go to amazom EM and add setp and give this command as argument with
+specified JAR file.
+
+
+
+

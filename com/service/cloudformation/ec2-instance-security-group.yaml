@@ -1,0 +1,84 @@
+# Use public Systems Manager Parameter
+Parameters:
+    LatestAmiId:
+        Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+        Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+    KeyName:
+        Description: 'EC2 Instance SSH Key'
+        Type: 'AWS::EC2::KeyPair::KeyName'
+
+Resources:
+    Instance:
+        Type: 'AWS::EC2::Instance'
+        Properties:
+            ImageId: !Ref LatestAmiId
+            InstanceType: t2.micro
+            AvailabilityZone: us-east-1a
+            SecurityGroups:
+              - !Ref ServerSecurityGroup
+              - !Ref SSHSecurityGroup
+            IamInstanceProfile: !Ref ListS3BucketsInstanceProfile
+            KeyName: !Ref KeyName
+    ServerSecurityGroup:
+        Type: 'AWS::EC2::SecurityGroup'
+        Properties:
+            GroupDescription: 'This is a security group'
+            SecurityGroupIngress: [{IpProtocol: tcp, FromPort: 80, ToPort: 80}, {IpProtocol: tcp, FromPort: 22, ToPort: 22, CidrIp: 192.168.1.1/32}]
+    SSHSecurityGroup:
+        Type: 'AWS::EC2::SecurityGroup'
+        Properties:
+            GroupDescription: 'Allow SSH access from anywhere'
+            SecurityGroupIngress: [{FromPort: '22', ToPort: '22', IpProtocol: tcp, CidrIp: 0.0.0.0/0}]
+
+    ListS3BucketsInstanceProfile:
+        Type: 'AWS::IAM::InstanceProfile'
+        Properties:
+            Path: /
+            Roles:
+            - !Ref ListS3BucketsRole
+    ListS3BucketsPolicy:
+        Type: 'AWS::IAM::Policy'
+        Properties:
+            PolicyName: EC2_S3_Access_Policy
+            PolicyDocument: {Statement: [{Effect: Allow, Action: ['s3:List*'], Resource: '*'}]}
+            Roles:
+            - !Ref ListS3BucketsRole
+    ListS3BucketsRole:
+        Type: 'AWS::IAM::Role'
+        Properties:
+            AssumeRolePolicyDocument: {Version: '2012-10-17', Statement: [{Effect: Allow, Principal: {Service: [ec2.amazonaws.com]}, Action: ['sts:AssumeRole']}]}
+            Path: /
+
+#====== Permission denied (publickey,gssapi-keyex,gssapi-with-mic).
+#====== error while connecting to ec2 instance
+#====== OS: MAC
+#====== s3 testing pending
+
+Outputs:
+  EC2:
+    Description: EC2 IP address
+    Value:
+      Fn::Join:
+      - ''
+      - - ssh ec2-user@
+        - Fn::GetAtt:
+          - Instance
+          - PublicIp
+        - " -i "
+        - Ref: KeyName
+        - ".pem"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
